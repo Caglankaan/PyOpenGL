@@ -59,11 +59,12 @@ class HCoord:
 		self._data[3] = value
 
 	def _apply_operation(self, value, operation):
+		result = []
 		if isinstance(value, type(self)):
 			result = OPERATIONS[operation](value._data, self._data)
 		elif isinstance(value, numbers.Number):
 			result = OPERATIONS[operation](value, self._data)
-
+			
 		return (self.__class__) (result[0], result[1], result[2])
 
 	def sqrlen(self):

@@ -14,9 +14,9 @@ class Viewer:
     def __init__(self, cam, width=1280, height=720):
         self.prev_time = 0
         self.change_image = False
+        self.show_shadows = True
         self.lighters = [True, True]
         self.percentage = 0.5
-        self.counter = 0
         self.blinn_status = False
         self.blendOn = 0
         self.BLENDSTYLES = [
@@ -50,21 +50,22 @@ class Viewer:
 
 
     def run(self):
-        curr_time = glutGet(GLUT_ELAPSED_TIME)
-        if(curr_time - self.prev_time >= 1000):
-            self.counter = 0
-            self.prev_time = curr_time
-            
-        self.counter+=1
         glClearColor(0.0, 0.0, 0.0, 0.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        err = glGetError()
+        if err != GL_NO_ERROR:
+            print("err is: ", err)
+            exit(1)
         glEnable(GL_DEPTH_TEST)
+        glEnable(GL_CULL_FACE)
         view = self.cam.getViewMatrix().asNumpy()
         for drawable in self.drawables:
             if(drawable[1]):
                 drawable[2].draw(self.projection, view, None, self.show_animation, self.percentage, self.blinn_status, 
                 drawable[4] if self.lighters[0] else None, 
-                drawable[5] if self.lighters[1] else None)
+                drawable[5] if self.lighters[1] else None,
+                self.show_shadows
+                )
 
         self.change_image = False
         glutSwapBuffers()
@@ -124,6 +125,8 @@ class Viewer:
             elif(ord(key) == 50):
                 self.lighters = [self.lighters[0], not self.lighters[1]]
                 self.show_objects(self.lighters)
+            elif(ord(key) == 51):
+                self.show_shadows = not self.show_shadows
             """
             elif(ord(key) == 43): #+
                 self.change_percentage(+0.05)

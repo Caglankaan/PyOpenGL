@@ -7,11 +7,31 @@ from OpenGL.GL import *
 import os
 
 class Shader:
-    def __init__(self, vertex_source, fragment_source):
+    def __init__(self, vertex_source, fragment_source, geometry_source = None):
         
         self.glid = None
         vert = self.loadShader(GL_VERTEX_SHADER, vertex_source )
         frag = self.loadShader(GL_FRAGMENT_SHADER, fragment_source )
+        geom = False
+        if geometry_source != None:
+            geom = self.loadShader(GL_GEOMETRY_SHADER, geometry_source)
+
+        if vert and frag and geom:
+            print("buraya girdi hleal olsun")
+            self.glid = glCreateProgram()  # pylint: disable=E1111
+            glAttachShader(self.glid, vert)
+            glAttachShader(self.glid, frag)
+            glAttachShader(self.glid, geom)
+            glLinkProgram(self.glid)
+            glDeleteShader(vert)
+            glDeleteShader(frag)
+            glDeleteShader(geom)
+            status = glGetProgramiv(self.glid, GL_LINK_STATUS)
+            if not status:
+                print(glGetProgramInfoLog(self.glid).decode('ascii'))
+                glDeleteProgram(self.glid)
+                self.glid = None
+
         if vert and frag:
             self.glid = glCreateProgram()  # pylint: disable=E1111
             glAttachShader(self.glid, vert)
@@ -24,6 +44,7 @@ class Shader:
                 print(glGetProgramInfoLog(self.glid).decode('ascii'))
                 glDeleteProgram(self.glid)
                 self.glid = None
+        
 
     def __del__(self):
         glUseProgram(0)

@@ -94,6 +94,7 @@ class Matrix:
 
 
 	def __mul__(self, scalar):
+		print("__mulllaniyo mu??")
 		return Matrix( scalar * self.na )
 
 

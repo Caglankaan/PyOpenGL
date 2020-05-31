@@ -10,6 +10,7 @@ uniform vec3 view_pos;
 uniform vec3 light_color;
 uniform vec3 obj_color;
 uniform bool blinn;
+uniform bool open_shadows;
 
 struct LightSource
 {
@@ -21,22 +22,49 @@ out vec4 color;
 
 //uniform sampler2D tex_sampler;
 //uniform sampler2D tex_sampler2;
+uniform float far_plane;
 uniform float tex_alpha;
 uniform LightSource light_source[2];
+
+float ShadowCalculation(vec3 fragPos, vec3 my_color, LightSource light_source)
+{
+    if(open_shadows)
+    {
+        vec3 fragToLight = fragPos - light_source.light_pos;
+
+        float closestDepth = my_color.r;
+
+        closestDepth *= far_plane;
+
+        float currentDepth = length(fragToLight);
+        float bias = 20;
+        float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+        
+        return shadow;
+    }
+    else
+    {
+        return 0.0;
+    }
+    
+}
+
+
 
 
 vec3 calcLightSource(LightSource light_source, vec3 my_color, vec3 normal, vec3 frag_pos, vec3 view_pos, bool blinn)
 {
     if(light_source.light_on)
     {
-        vec3 ambient = 0.2 * my_color;
+        vec3 ambient = 0.3 * my_color;
 
+        vec3 lightColor = vec3(0.3);
 
         vec3 norm = normalize(normal);
         vec3 light_dir = normalize(light_source.light_pos - frag_pos);
 
         float diff = max(dot(norm, light_dir),0.0);
-        vec3 diffuse = diff * my_color;
+        vec3 diffuse = diff * lightColor;
 
         vec3 view = normalize(view_pos - frag_pos);
 
@@ -54,9 +82,12 @@ vec3 calcLightSource(LightSource light_source, vec3 my_color, vec3 normal, vec3 
             spec = 0.0;
         }
         
-        vec3 specular = vec3(0.3) * spec;
+        float shadow = ShadowCalculation(frag_pos, my_color, light_source);
+        
+        vec3 specular = lightColor * spec;
 
-        return (ambient + diffuse + specular);
+        //return (ambient + diffuse + specular);
+        return (ambient + (1.0 - shadow) * (diffuse + specular)) * my_color;
     }
     else
     {

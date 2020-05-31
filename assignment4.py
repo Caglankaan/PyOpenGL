@@ -22,6 +22,7 @@ def main():
 
     viewer = Viewer(cam)
     color_shader = Shader("vert.vs", "frag.fs")
+    geom_shader = Shader("point_shadows_depth.vs","point_shadows_depth.fs","point_shadows_depth.gs")
 
     lighter_shader = Shader("light_vert.vs", "light_frag.fs")
 
@@ -35,11 +36,13 @@ def main():
     
     cornell_obj = ObjLoader()
     cornell_obj.load_modell_cornell("object_files/cornell.obj")
-    
+
     LighterObject = LightObject(lighter_shader, [18,3,0], sphere_obj, [1.0, 1.0, 3.0], True)
     LighterObject2 = LightObject(lighter_shader, [0,40,0], sphere_obj, [1.0, 1.0, 3.0], False)
-    CornellObject = ShapeFromObjectFile(cam, color_shader, (0,0,-5), cornell_obj, None, None, LighterObject,LighterObject2)
+    ShadowsObject = RenderShadows(cam, color_shader, geom_shader, [0,0,-5], cornell_obj, None, None, LighterObject,LighterObject2)
+    CornellObject = ShapeFromObjectFile(cam, color_shader, [0,0,-5], cornell_obj, None, None, LighterObject,LighterObject2)
     
+    viewer.add(["Shadow", True, ShadowsObject, False, LighterObject, LighterObject2])
     viewer.add(["Cornell", True, CornellObject, False, LighterObject, LighterObject2])
     viewer.add(["Lighter1", True, LighterObject, False, LighterObject, LighterObject2])
     viewer.add(["Lighter2", True, LighterObject2, False, LighterObject, LighterObject2])
